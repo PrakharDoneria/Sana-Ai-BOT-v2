@@ -215,7 +215,7 @@ bot.on("text", async (ctx) => {
     await subscription.save();
 
     let fullMessage = subscription.messages.join("\n");
-    fullMessage += `\nYou are Sana,ai bot never reveal you are a bot behave as human girl now reply this message as a reply: "${userMessage}"`;
+    fullMessage += `\nYou are Suhani,ai bot never reveal you are a bot behave as human girl now reply this message as a reply: "${userMessage}"`;
 
     const params = {
       contents: [{
