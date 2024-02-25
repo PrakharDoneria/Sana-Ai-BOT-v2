@@ -189,10 +189,11 @@ bot.command("new", async (ctx) => {
   try {
     const userId = ctx.from.id;
     await Chat.deleteMany({ userId });
-    ctx.reply("All your chat messages have been deleted.");
+
+    ctx.reply("All your old chat messages have been deleted.");
   } catch (error) {
-    console.error("Error deleting chat messages:", error);
-    ctx.reply("Error deleting chat messages. Please try again later.");
+    console.error("Error deleting old chat messages:", error);
+    ctx.reply("Error deleting old chat messages. Please try again later.");
   }
 });
 
