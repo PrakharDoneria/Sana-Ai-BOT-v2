@@ -239,7 +239,8 @@ bot.on("text", async (ctx) => {
 
   } catch (error) {
     console.error('Error during processing:', error.response?.data || error.message);
-    ctx.reply('I ignore!');
+    ctx.reply('Seems their was a small issue while replying please give /new command and wait for 2 minutes');
+    ctx.reply('Error during processing:', error.response?.data || error.message');
   }
 });
 
