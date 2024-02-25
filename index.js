@@ -213,6 +213,15 @@ bot.command("new", async (ctx) => {
 
 bot.on("text", async (ctx) => {
   try {
+    const groupId = ctx.message.chat.id; // Get the group chat ID
+    const allowedGroupId = -1002116123231; // Specify the allowed group chat ID
+
+    // Check if the group chat ID matches the allowed one
+    if (groupId !== allowedGroupId) {
+      ctx.reply("Join https://t.me/codewithprakhar to continue chat");
+      return;
+    }
+
     const userId = ctx.from.id;
     let userMessage = ctx.message.text;
 
