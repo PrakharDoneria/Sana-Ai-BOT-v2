@@ -13,7 +13,10 @@ app.listen(PORT, () => {
 });
 
 try {
-  mongoose.connect("mongodb+srv://prakhardoneria:Yash2021@database.i5m6jg3.mongodb.net/?retryWrites=true&w=majority&appName=database");
+  mongoose.connect("mongodb+srv://prakhardoneria:Yash2021@database.i5m6jg3.mongodb.net/?retryWrites=true&w=majority&appName=database", {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+  });
 
   const db = mongoose.connection;
   db.on("error", console.error.bind(console, "MongoDB connection error:"));
@@ -55,7 +58,13 @@ async function deleteChatHistory() {
 }
 
 // Set up interval to delete chat history every hour
-setInterval(deleteChatHistory, 60 * 60 * 1000);
+setInterval(() => {
+  try {
+    deleteChatHistory();
+  } catch (error) {
+    console.error("Error in deleteChatHistory interval:", error);
+  }
+}, 60 * 60 * 1000);
 
 bot.command("translate", async (ctx) => {
   try {
