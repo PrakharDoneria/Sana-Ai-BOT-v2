@@ -68,8 +68,21 @@ process.on('unhandledRejection', (error) => {
   }
 });
 
-bot.start((ctx) => ctx.reply('Welcome to the Telegram Bot!'));
-bot.help((ctx) => ctx.reply('You can use the following commands:\n/translate [language_code] - Translate a message\n/yt [search_query] - Search for YouTube videos\n/github [query] [language] - Search GitHub repositories\n/start - Subscribe to the bot\n/end - Unsubscribe from the bot\n/new - Delete all your old chat messages'));
+bot.command("start", async (ctx) => {
+  try {
+    const userId = ctx.from.id;
+    const subscription = await Subscription.findOne({ userId });
+    if (!subscription) {
+      await Subscription.create({ userId, subscribed: true });
+      ctx.reply("You have been subscribed to the bot.");
+    } else {
+      ctx.reply("You are already subscribed to the bot.");
+    }
+  } catch (error) {
+    console.error("Error subscribing user:", error);
+    ctx.reply("Error subscribing user. Please try again later.");
+  }
+});
 
 bot.command("translate", async (ctx) => {
   try {
