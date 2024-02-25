@@ -14,8 +14,7 @@ app.listen(PORT, () => {
 
 try {
   mongoose.connect("mongodb+srv://prakhardoneria:Yash2021@database.i5m6jg3.mongodb.net/?retryWrites=true&w=majority&appName=database", {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
+    useNewUrlParser: true
   });
 
   const db = mongoose.connection;
