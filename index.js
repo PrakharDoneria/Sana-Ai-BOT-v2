@@ -43,6 +43,20 @@ const geminiApiKey = process.env.GEMINI_API_KEY;
 const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
 const messageProcessingDelay = 1000;
 
+// Function to delete chat history older than one hour
+async function deleteChatHistory() {
+  try {
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    await Chat.deleteMany({ timestamp: { $lte: oneHourAgo } });
+    console.log("Chat history older than one hour has been deleted.");
+  } catch (error) {
+    console.error("Error deleting old chat messages:", error);
+  }
+}
+
+// Set up interval to delete chat history every hour
+setInterval(deleteChatHistory, 60 * 60 * 1000);
+
 bot.command("translate", async (ctx) => {
   try {
     const commandRegex = /\/translate (\w+)/;
@@ -197,7 +211,6 @@ bot.command("new", async (ctx) => {
   }
 });
 
-
 bot.on("text", async (ctx) => {
   try {
     const userId = ctx.from.id;
@@ -217,6 +230,9 @@ bot.on("text", async (ctx) => {
 
     let fullMessage = subscription.messages.join("\n");
     fullMessage += `\nYou are Suhani from India,never reveal you are a bot behave as human girl now reply this message as a reply: "${userMessage}"`;
+
+    // Show typing indication
+    await ctx.replyWithChatAction('typing');
 
     const params = {
       contents: [{
@@ -249,7 +265,6 @@ try {
 } catch (error) {
   console.error("Error launching bot:", error);
 }
-
 
 process.on('unhandledRejection', (error) => {
   try {
