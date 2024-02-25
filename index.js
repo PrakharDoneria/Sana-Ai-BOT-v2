@@ -43,25 +43,33 @@ const geminiApiKey = process.env.GEMINI_API_KEY;
 const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
 const messageProcessingDelay = 1000;
 
-// Function to delete chat history older than one hour
-async function deleteChatHistory() {
+async function launchBot() {
   try {
-    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
-    await Chat.deleteMany({ timestamp: { $lte: oneHourAgo } });
-    console.log("Chat history older than one hour has been deleted.");
+    await bot.launch();
   } catch (error) {
-    console.error("Error deleting old chat messages:", error);
+    if (error.description === 'Conflict: terminated by other getUpdates request') {
+      console.warn('Bot instance conflict detected. Retrying in 5 seconds...');
+      setTimeout(() => {
+        launchBot(); // Retry launching the bot after a delay
+      }, 5000); // Retry after 5 seconds
+    } else {
+      console.error("Error launching bot:", error);
+    }
   }
 }
 
-// Set up interval to delete chat history every hour
-setInterval(() => {
+launchBot(); // Initial launch attempt
+
+process.on('unhandledRejection', (error) => {
   try {
-    deleteChatHistory();
-  } catch (error) {
-    console.error("Error in deleteChatHistory interval:", error);
+    console.error('Unhandled Rejection:', error);
+  } catch (handleError) {
+    console.error('Error handling unhandled rejection:', handleError);
   }
-}, 60 * 60 * 1000);
+});
+
+bot.start((ctx) => ctx.reply('Welcome to the Telegram Bot!'));
+bot.help((ctx) => ctx.reply('You can use the following commands:\n/translate [language_code] - Translate a message\n/yt [search_query] - Search for YouTube videos\n/github [query] [language] - Search GitHub repositories\n/start - Subscribe to the bot\n/end - Unsubscribe from the bot\n/new - Delete all your old chat messages'));
 
 bot.command("translate", async (ctx) => {
   try {
@@ -70,17 +78,11 @@ bot.command("translate", async (ctx) => {
     if (match) {
       const languageCode = match[1];
       if (!languageCode) {
-        ctx.telegram.sendMessage(
-          ctx.message.chat.id,
-          "Please include the language code along with /translate.",
-        );
+        ctx.reply("Please include the language code along with /translate.");
         return;
       }
       if (!ctx.message.reply_to_message) {
-        ctx.telegram.sendMessage(
-          ctx.message.chat.id,
-          "Please reply to a message to translate it.",
-        );
+        ctx.reply("Please reply to a message to translate it.");
         return;
       }
       const originalText = ctx.message.reply_to_message.text;
@@ -92,17 +94,11 @@ bot.command("translate", async (ctx) => {
           translatedText += response.data[0][i][0];
         }
       }
-      ctx.telegram.sendMessage(
-        ctx.message.chat.id,
-        `Translation to ${languageCode.toUpperCase()}: ${translatedText}`,
-      );
+      ctx.reply(`Translation to ${languageCode.toUpperCase()}: ${translatedText}`);
     }
   } catch (error) {
     console.error("Error processing translation:", error);
-    ctx.telegram.sendMessage(
-      ctx.message.chat.id,
-      "Error processing the translation. Please try again later.",
-    );
+    ctx.reply("Error processing the translation. Please try again later.");
   }
 });
 
@@ -209,7 +205,6 @@ bot.command("new", async (ctx) => {
   try {
     const userId = ctx.from.id;
     await Chat.deleteMany({ userId });
-
     ctx.reply("All your old chat messages have been deleted.");
   } catch (error) {
     console.error("Error deleting old chat messages:", error);
@@ -222,7 +217,6 @@ bot.on("text", async (ctx) => {
     const groupId = ctx.message.chat.id; // Get the group chat ID
     const allowedGroupId = -1002116123231; // Specify the allowed group chat ID
 
-    // Check if the group chat ID matches the allowed one
     if (groupId !== allowedGroupId) {
       ctx.reply("Join https://t.me/codewithprakhar to continue chat");
       return;
@@ -231,10 +225,8 @@ bot.on("text", async (ctx) => {
     const userId = ctx.from.id;
     let userMessage = ctx.message.text;
 
-    // Check if the user is subscribed
     const subscription = await Subscription.findOne({ userId });
     if (!subscription || !subscription.subscribed) {
-      // If not subscribed, simply return without processing the message
       return;
     }
 
@@ -246,7 +238,6 @@ bot.on("text", async (ctx) => {
     let fullMessage = subscription.messages.join("\n");
     fullMessage += `\nYou are Suhani from India,never reveal you are a bot behave as human girl now reply this message as a reply: "${userMessage}"`;
 
-    // Show typing indication
     await ctx.replyWithChatAction('typing');
 
     const params = {
@@ -272,19 +263,5 @@ bot.on("text", async (ctx) => {
   } catch (error) {
     console.error('Error during processing:', error.response?.data || error.message);
     ctx.reply('Seems their was a small issue while replying please give /new command and wait for 2 minutes');
-  }
-});
-
-try {
-  bot.launch();
-} catch (error) {
-  console.error("Error launching bot:", error);
-}
-
-process.on('unhandledRejection', (error) => {
-  try {
-    console.error('Unhandled Rejection:', error);
-  } catch (handleError) {
-    console.error('Error handling unhandled rejection:', handleError);
   }
 });
