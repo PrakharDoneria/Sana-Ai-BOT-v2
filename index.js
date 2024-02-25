@@ -13,9 +13,7 @@ app.listen(PORT, () => {
 });
 
 try {
-  mongoose.connect("mongodb+srv://prakhardoneria:Yash2021@database.i5m6jg3.mongodb.net/?retryWrites=true&w=majority&appName=database", {
-    useNewUrlParser: true
-  });
+  mongoose.connect("mongodb+srv://prakhardoneria:Yash2021@database.i5m6jg3.mongodb.net/?retryWrites=true&w=majority&appName=database");
 
   const db = mongoose.connection;
   db.on("error", console.error.bind(console, "MongoDB connection error:"));
